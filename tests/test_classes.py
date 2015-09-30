@@ -12,4 +12,8 @@ class TestClasses(unittest.TestCase):
 
     def test_classMethods(self):
         assert( len(self.class_a.functions) == 2)
-        
+    
+    def test_classMethodReturnType(self):
+        assert( self.class_a.functions[0].return_type == "int" )
+        assert( self.class_a.functions[1].return_type == "void" )
+
