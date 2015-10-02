@@ -13,3 +13,14 @@ class TestClasses(unittest.TestCase):
     def test_classMethods(self):
         assert( len(self.class_a.functions) == 2)
         
+    def test_classMethodReturnTypes(self):
+        assert( self.class_a.functions[0].return_type == "int")
+        assert( self.class_a.functions[1].return_type == "void")
+    
+    def test_classMethodArgumentTypes(self):
+        args = self.class_a.functions[0].arguments
+        assert(args[0].type == "int")
+        assert(args[0].name == "i")
+        assert(args[1].type == "const char *") 
+        # note the inserted whitespace    ^
+        assert(args[1].name == "p")

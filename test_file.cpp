@@ -1,4 +1,4 @@
 class A {
-  int foo() const { return 0; }
+  int foo(int i, const char* p) const { return 0; }
   void bar() { }
 };
