@@ -24,3 +24,9 @@ class TestClasses(unittest.TestCase):
         assert(args[1].type == "const char *") 
         # note the inserted whitespace    ^
         assert(args[1].name == "p")
+
+    # we cannot get const qualification of member function from libclang
+    @unittest.expectedFailure 
+    def test_classMethodConstQualifiers(self):
+        assert( self.class_a.functions[0].is_const == True)
+        assert( self.class_a.functions[1].is_const == False)
