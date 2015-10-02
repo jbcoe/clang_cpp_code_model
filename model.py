@@ -34,6 +34,7 @@ class Function(object):
     self.name = cursor.spelling
     arguments = [x.spelling for x in cursor.get_arguments()]
     argument_types = [x.spelling for x in cursor.type.argument_types()]
+    self.is_const = cursor.type.is_const_qualified()
     self.type = cursor.type.spelling
     self.return_type = cursor.type.get_result().spelling
     self.arguments = []
