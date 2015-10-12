@@ -25,12 +25,11 @@ class FunctionArgument:
     self.name = name
 
 
-class Function(object):
+class Method(object):
   def __repr__(self):
     return "Function:"+str(self.name)
 
   def __init__(self, cursor):
-    self.function_cursor = cursor
     self.name = cursor.spelling
     arguments = [x.spelling for x in cursor.get_arguments()]
     argument_types = [x.spelling for x in cursor.type.argument_types()]
@@ -50,7 +49,7 @@ class Class(object):
 
   def __init__(self, cursor):
     self.name = cursor.spelling
-    self.functions = []
+    self.methods = []
     self.fields = []
     self.annotations = _get_annotations(cursor)
     self.base_classes = []
@@ -60,15 +59,15 @@ class Class(object):
         m = Field(c)
         self.fields.append(m)
       elif (c.kind == clang.cindex.CursorKind.CXX_METHOD):
-        f = Function(c)
-        self.functions.append(f)
+        f = Method(c)
+        self.methods.append(f)
       elif (c.kind == clang.cindex.CursorKind.CONSTRUCTOR):
-        f = Function(c)
-        self.functions.append(f)
+        f = Method(c)
+        self.methods.append(f)
       elif (c.kind == clang.cindex.CursorKind.CXX_BASE_SPECIFIER):
         self.base_classes.append(c.type.spelling)
 
-    self.constructors = [x for x in self.functions if x.name == self.name]
+    self.constructors = [x for x in self.methods if x.name == self.name]
 
 def set_libclang_path_from_env():
     if clang.cindex.Config.loaded:
