@@ -34,7 +34,12 @@ class Function(object):
     self.name = cursor.spelling
     arguments = [x.spelling for x in cursor.get_arguments()]
     argument_types = [x.spelling for x in cursor.type.argument_types()]
-    self.is_const = cursor.type.is_const_qualified()
+    
+    if (cursor.kind == clang.cindex.CursorKind.CXX_METHOD):
+        self.is_const = cursor.is_const_method()
+        self.is_virtual = cursor.is_virtual_method()
+        self.is_pure_virtual = cursor.is_pure_virtual_method()
+    
     self.type = cursor.type.spelling
     self.return_type = cursor.type.get_result().spelling
     self.arguments = []

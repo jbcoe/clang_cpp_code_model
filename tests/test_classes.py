@@ -11,7 +11,7 @@ class TestClasses(unittest.TestCase):
         assert(self.class_a.name == 'A')
 
     def test_classMethods(self):
-        assert( len(self.class_a.functions) == 2)
+        assert( len(self.class_a.functions) == 3)
         
     def test_classMethodReturnTypes(self):
         assert( self.class_a.functions[0].return_type == "int")
@@ -25,8 +25,12 @@ class TestClasses(unittest.TestCase):
         # note the inserted whitespace    ^
         assert(args[1].name == "p")
 
-    # we cannot get const qualification of member function from libclang
-    @unittest.expectedFailure 
     def test_classMethodConstQualifiers(self):
         assert( self.class_a.functions[0].is_const == True)
         assert( self.class_a.functions[1].is_const == False)
+    
+    def test_classMethodsAreVirtual(self):
+        assert( self.class_a.functions[0].is_virtual == True)
+        assert( self.class_a.functions[0].is_pure_virtual == False)
+        assert( self.class_a.functions[1].is_virtual == False)
+        assert( self.class_a.functions[2].is_pure_virtual == True)
