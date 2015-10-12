@@ -11,14 +11,14 @@ class TestClasses(unittest.TestCase):
         assert(self.class_a.name == 'A')
 
     def test_classMethods(self):
-        assert( len(self.class_a.functions) == 2)
+        assert( len(self.class_a.methods) == 2)
         
     def test_classMethodReturnTypes(self):
-        assert( self.class_a.functions[0].return_type == "int")
-        assert( self.class_a.functions[1].return_type == "void")
+        assert( self.class_a.methods[0].return_type == "int")
+        assert( self.class_a.methods[1].return_type == "void")
     
     def test_classMethodArgumentTypes(self):
-        args = self.class_a.functions[0].arguments
+        args = self.class_a.methods[0].arguments
         assert(args[0].type == "int")
         assert(args[0].name == "i")
         assert(args[1].type == "const char *") 
@@ -28,5 +28,5 @@ class TestClasses(unittest.TestCase):
     # we cannot get const qualification of member function from libclang
     @unittest.expectedFailure 
     def test_classMethodConstQualifiers(self):
-        assert( self.class_a.functions[0].is_const == True)
-        assert( self.class_a.functions[1].is_const == False)
+        assert( self.class_a.methods[0].is_const == True)
+        assert( self.class_a.methods[1].is_const == False)
