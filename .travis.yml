@@ -12,6 +12,7 @@ before_install:
   - sudo apt-get install libclang-3.6-dev
   - export LIBCLANG_PATH=$(find /usr/lib -name libclang.so)
 
+# install requirements and package to test
 install: 
   "pip install -r requirements.txt"
   "pip install -e ."
