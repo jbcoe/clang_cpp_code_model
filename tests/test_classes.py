@@ -1,5 +1,5 @@
 import unittest
-import model
+import cppmodel as model
 
 class TestClasses(unittest.TestCase):
 
