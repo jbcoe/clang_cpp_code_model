@@ -20,6 +20,7 @@ install:
 # command to run tests
 script: ./run_tests.sh
   
+# slack ID for c-api team
 notifications:
     slack: c-api:Lvo4ZEfFhJVU3s0f3QtdRMXO
 
