@@ -14,8 +14,8 @@ before_install:
 
 # install requirements and package to test
 install: 
-  "pip install -r requirements.txt"
-  "pip install -e ."
+  - pip install -r requirements.txt
+  - pip install -e .
   
 # command to run tests
 script: ./run_tests.sh
