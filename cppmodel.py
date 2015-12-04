@@ -49,6 +49,7 @@ class Class(object):
 
   def __init__(self, cursor):
     self.name = cursor.spelling
+    self.constructors = []
     self.methods = []
     self.fields = []
     self.annotations = _get_annotations(cursor)
@@ -63,11 +64,10 @@ class Class(object):
         self.methods.append(f)
       elif (c.kind == clang.cindex.CursorKind.CONSTRUCTOR):
         f = Method(c)
-        self.methods.append(f)
+        self.constructors.append(f)
       elif (c.kind == clang.cindex.CursorKind.CXX_BASE_SPECIFIER):
         self.base_classes.append(c.type.spelling)
 
-    self.constructors = [x for x in self.methods if x.name == self.name]
 
 def set_libclang_path_from_env():
     if clang.cindex.Config.loaded:
