@@ -62,11 +62,6 @@ class Class(object):
                 self.base_classes.append(c.type.spelling)
 
 
-def set_libclang_path_from_env():
-    if clang.cindex.Config.loaded:
-        return
-    clang.cindex.Config.set_library_file(os.environ['LIBCLANG_PATH'])
-
 def build_classes(cursor):
     result = []
     for c in cursor.get_children():
@@ -84,7 +79,6 @@ def build_classes(cursor):
 
 
 def parse_classes(class_file):
-    set_libclang_path_from_env()
     index = clang.cindex.Index.create()
     translation_unit = index.parse(class_file, ['-x', 'c++', '-std=c++11'])
     classes = build_classes(translation_unit.cursor)

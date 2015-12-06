@@ -1,10 +1,23 @@
 import unittest
 import cppmodel as model
+from clang.cindex import TranslationUnit
 
 class TestClasses(unittest.TestCase):
 
     def setUp(self):
-        classes = model.parse_classes('test_file.cpp')
+        source = """
+class A {
+  virtual int foo(int i, const char* p) const { return 0; }
+  void bar() { }
+  virtual int fubar() = 0;
+};"""   
+        name = 't.cpp'
+        tu = TranslationUnit.from_source(
+                name, 
+                ['-std=c++14'], 
+                unsaved_files=[(name,source)])
+
+        classes = model.build_classes(tu.cursor)
         self.class_a = classes[0]
 
     def test_className(self):
