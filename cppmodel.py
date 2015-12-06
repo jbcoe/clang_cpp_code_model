@@ -52,10 +52,7 @@ class Class(object):
         self.base_classes = []
 
         for c in cursor.get_children():
-            if (c.kind == clang.cindex.CursorKind.FIELD_DECL):
-                m = Field(c)
-                self.fields.append(m)
-            elif (c.kind == clang.cindex.CursorKind.CXX_METHOD):
+            if (c.kind == clang.cindex.CursorKind.CXX_METHOD):
                 f = Method(c)
                 self.methods.append(f)
             elif (c.kind == clang.cindex.CursorKind.CONSTRUCTOR):
