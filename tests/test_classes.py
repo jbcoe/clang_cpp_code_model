@@ -1,6 +1,6 @@
 import unittest
 import cppmodel as model
-from clang.cindex import TranslationUnit
+from util import get_tu
 
 class TestClasses(unittest.TestCase):
 
@@ -11,12 +11,7 @@ class A {
   void bar() { }
   virtual int fubar() = 0;
 };"""   
-        name = 't.cpp'
-        tu = TranslationUnit.from_source(
-                name, 
-                ['-std=c++14'], 
-                unsaved_files=[(name,source)])
-
+        tu = get_tu(source, 'cpp')
         classes = model.build_classes(tu.cursor)
         self.class_a = classes[0]
 
