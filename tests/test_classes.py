@@ -50,3 +50,19 @@ class A {
         assert( self.class_a.methods[0].is_pure_virtual == False)
         assert( self.class_a.methods[1].is_virtual == False)
         assert( self.class_a.methods[2].is_pure_virtual == True)
+
+    def test_namespaces(self):
+        source = """
+class A{};
+namespace outer {
+    class B{};
+    namespace inner {
+        class C{};
+    } // end inner
+} // end outer"""
+        tu = get_tu(source, 'cpp')
+        classes = model.build_classes(tu.cursor)
+        assert(classes[0].namespace == "");
+        assert(classes[1].namespace == "outer");
+        assert(classes[2].namespace == "outer::inner");
+

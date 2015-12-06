@@ -1,10 +1,11 @@
 import os
 import sys
 import clang.cindex
+from clang.cindex import CursorKind
 
 def _get_annotations(node):
     return [c.displayname for c in node.get_children()
-            if c.kind == clang.cindex.CursorKind.ANNOTATE_ATTR]
+            if c.kind == CursorKind.ANNOTATE_ATTR]
 
 
 class FunctionArgument:
@@ -25,7 +26,7 @@ class Method(object):
         arguments = [x.spelling for x in cursor.get_arguments()]
         argument_types = [x.spelling for x in cursor.type.argument_types()]
 
-        if (cursor.kind == clang.cindex.CursorKind.CXX_METHOD):
+        if (cursor.kind == CursorKind.CXX_METHOD):
             self.is_const = cursor.is_const_method()
             self.is_virtual = cursor.is_virtual_method()
             self.is_pure_virtual = cursor.is_pure_virtual_method()
@@ -43,8 +44,9 @@ class Class(object):
     def __repr__(self):
         return "Class:%s"%str(self.name)
 
-    def __init__(self, cursor):
+    def __init__(self, cursor, namespaces=[]):
         self.name = cursor.spelling
+        self.namespace = '::'.join(namespaces)
         self.constructors = []
         self.methods = []
         self.fields = []
@@ -52,27 +54,25 @@ class Class(object):
         self.base_classes = []
 
         for c in cursor.get_children():
-            if (c.kind == clang.cindex.CursorKind.CXX_METHOD):
+            if (c.kind == CursorKind.CXX_METHOD):
                 f = Method(c)
                 self.methods.append(f)
-            elif (c.kind == clang.cindex.CursorKind.CONSTRUCTOR):
+            elif (c.kind == CursorKind.CONSTRUCTOR):
                 f = Method(c)
                 self.constructors.append(f)
-            elif (c.kind == clang.cindex.CursorKind.CXX_BASE_SPECIFIER):
+            elif (c.kind == CursorKind.CXX_BASE_SPECIFIER):
                 self.base_classes.append(c.type.spelling)
 
 
-def build_classes(cursor):
+def build_classes(cursor, namespaces=[]):
     result = []
     for c in cursor.get_children():
-        if c.kind == clang.cindex.CursorKind.CLASS_DECL:
-            a_class = Class(c)
+        if c.kind == CursorKind.CLASS_DECL or c.kind == CursorKind.STRUCT_DECL:
+            a_class = Class(c,namespaces)
             result.append(a_class)
-        elif c.kind == clang.cindex.CursorKind.STRUCT_DECL:
-            a_class = Class(c)
-            result.append(a_class)
-        elif c.kind == clang.cindex.CursorKind.NAMESPACE:
-            child_classes = build_classes(c)
+        elif c.kind == CursorKind.NAMESPACE:
+            namespaces.append(c.spelling)
+            child_classes = build_classes(c,namespaces)
             result.extend(child_classes)
 
     return result
