@@ -6,14 +6,6 @@ def _get_annotations(node):
     return [c.displayname for c in node.get_children()
             if c.kind == clang.cindex.CursorKind.ANNOTATE_ATTR]
 
-    class Field:
-        def __repr__(self):
-            return str(self.type)+":\""+str(self.name)+"\""
-
-    def __init__(self,cursor):
-        self.name = cursor.spelling
-        self.type = cursor.type.spelling
-
 
 class FunctionArgument:
     def __repr__(self):
