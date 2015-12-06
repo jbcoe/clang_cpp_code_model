@@ -4,7 +4,7 @@ from util import get_tu
 
 class TestClasses(unittest.TestCase):
 
-    def test_className(self):
+    def test_class_name(self):
         source = 'class A{};'
         tu = get_tu(source, 'cpp')
 
@@ -13,7 +13,7 @@ class TestClasses(unittest.TestCase):
         assert(len(classes)==1)
         assert(classes[0].name == 'A')
 
-    def test_classMethods(self):
+    def test_class_methods(self):
         source = """
         class A{};
         class B{
@@ -27,7 +27,7 @@ class TestClasses(unittest.TestCase):
         assert(len(classes[0].methods) == 0)
         assert(len(classes[1].methods) == 2)
 
-    def test_classMethodReturnTypes(self):
+    def test_class_method_return_types(self):
         source = """
         class B{
             void foo();
@@ -40,7 +40,7 @@ class TestClasses(unittest.TestCase):
         assert(classes[0].methods[0].return_type == "void")
         assert(classes[0].methods[1].return_type == "int")
 
-    def test_classMethodArgumentTypes(self):
+    def test_class_method_argument_types(self):
         source = """
         class A {
             int foo(int i, const char* p);
@@ -56,7 +56,7 @@ class TestClasses(unittest.TestCase):
         # note the inserted whitespace    ^
         assert(args[1].name == "p")
 
-    def test_classMethodConstQualifiers(self):
+    def test_class_method_const_qualifiers(self):
         source = """
         class A {
             int foo() const;
@@ -70,7 +70,7 @@ class TestClasses(unittest.TestCase):
         assert( methods[0].is_const == True)
         assert( methods[1].is_const == False)
 
-    def test_classMethodsAreVirtual(self):
+    def test_class_methods_are_virtual(self):
         source = """
         class A {
             virtual int foo();
