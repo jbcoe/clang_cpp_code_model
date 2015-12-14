@@ -103,4 +103,18 @@ class TestClasses(unittest.TestCase):
         assert(classes[0].namespace == "");
         assert(classes[1].namespace == "outer");
         assert(classes[2].namespace == "outer::inner");
+    
+    def test_access_specifiers(self):
+        source = """
+        class A { int foo(); };
+        struct B { int foo(); };
+        class C { public: int foo(); };
+        """
+        tu = get_tu(source, 'cpp')
+        
+        classes = model.build_classes(tu.cursor)
+        
+        assert not classes[0].methods[0].is_public
+        assert classes[1].methods[0].is_public
+        assert classes[2].methods[0].is_public
 

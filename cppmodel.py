@@ -1,6 +1,7 @@
 import os
 import sys
 import clang.cindex
+from clang.cindex import AccessSpecifier
 from clang.cindex import CursorKind
 
 def _get_annotations(node):
@@ -26,11 +27,11 @@ class Method(object):
         arguments = [x.spelling for x in cursor.get_arguments()]
         argument_types = [x.spelling for x in cursor.type.argument_types()]
 
-        if (cursor.kind == CursorKind.CXX_METHOD):
+        if cursor.kind == CursorKind.CXX_METHOD:
             self.is_const = cursor.is_const_method()
             self.is_virtual = cursor.is_virtual_method()
             self.is_pure_virtual = cursor.is_pure_virtual_method()
-
+            self.is_public = (cursor.access_specifier == AccessSpecifier.PUBLIC)
         self.type = cursor.type.spelling
         self.return_type = cursor.type.get_result().spelling
         self.arguments = []
@@ -44,7 +45,7 @@ class Class(object):
     def __repr__(self):
         return "Class:%s"%str(self.name)
 
-    def __init__(self, cursor, namespaces=[]):
+    def __init__(self, cursor, namespaces):
         self.name = cursor.spelling
         self.namespace = '::'.join(namespaces)
         self.constructors = []
@@ -76,11 +77,4 @@ def build_classes(cursor, namespaces=[]):
             result.extend(child_classes)
 
     return result
-
-
-def parse_classes(class_file):
-    index = clang.cindex.Index.create()
-    translation_unit = index.parse(class_file, ['-x', 'c++', '-std=c++11'])
-    classes = build_classes(translation_unit.cursor)
-    return classes
 
