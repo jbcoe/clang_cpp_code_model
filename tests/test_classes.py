@@ -5,7 +5,8 @@ def test_class_name():
     source = 'class A{};'
     tu = get_tu(source, 'cpp')
 
-    classes = cppmodel.build_classes(tu.cursor)
+    model = cppmodel.Model(tu)
+    classes = model.classes
 
     assert len(classes)==1
     assert classes[0].name == 'A'
@@ -19,7 +20,8 @@ def test_class_methods():
     };"""
     tu = get_tu(source, 'cpp')
 
-    classes = cppmodel.build_classes(tu.cursor)
+    model = cppmodel.Model(tu)
+    classes = model.classes
 
     assert len(classes[0].methods) == 0
     assert len(classes[1].methods) == 2
@@ -32,7 +34,8 @@ def test_class_method_return_types():
     };"""
     tu = get_tu(source, 'cpp')
 
-    classes = cppmodel.build_classes(tu.cursor)
+    model = cppmodel.Model(tu)
+    classes = model.classes
 
     assert classes[0].methods[0].return_type == "void"
     assert classes[0].methods[1].return_type == "int"
@@ -44,7 +47,8 @@ def test_class_method_argument_types():
     };"""
     tu = get_tu(source, 'cpp')
 
-    classes = cppmodel.build_classes(tu.cursor)
+    model = cppmodel.Model(tu)
+    classes = model.classes
     args = classes[0].methods[0].arguments
 
     assert args[0].type == "int"
@@ -61,7 +65,8 @@ def test_class_method_const_qualifiers():
     };"""
     tu = get_tu(source, 'cpp')
 
-    classes = cppmodel.build_classes(tu.cursor)
+    model = cppmodel.Model(tu)
+    classes = model.classes
     methods = classes[0].methods
 
     assert methods[0].is_const
@@ -76,7 +81,8 @@ def test_class_methods_are_virtual():
     };"""
     tu = get_tu(source, 'cpp')
 
-    classes = cppmodel.build_classes(tu.cursor)
+    model = cppmodel.Model(tu)
+    classes = model.classes
     methods = classes[0].methods
 
     assert methods[0].is_virtual
@@ -95,7 +101,8 @@ def test_namespaces():
     } // end outer"""
     tu = get_tu(source, 'cpp')
 
-    classes = cppmodel.build_classes(tu.cursor)
+    model = cppmodel.Model(tu)
+    classes = model.classes
 
     assert classes[0].namespace == ""
     assert classes[1].namespace == "outer"
@@ -109,7 +116,8 @@ def test_access_specifiers():
     """
     tu = get_tu(source, 'cpp')
 
-    classes = cppmodel.build_classes(tu.cursor)
+    model = cppmodel.Model(tu)
+    classes = model.classes
 
     assert not classes[0].methods[0].is_public
     assert classes[1].methods[0].is_public

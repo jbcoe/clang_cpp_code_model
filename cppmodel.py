@@ -64,17 +64,20 @@ class Class(object):
             elif (c.kind == CursorKind.CXX_BASE_SPECIFIER):
                 self.base_classes.append(c.type.spelling)
 
+class Model(object):
+    def __repr__(self):
+        return "Classes:[{}]".format(",".join(self.classes))
 
-def build_classes(cursor, namespaces=[]):
-    result = []
-    for c in cursor.get_children():
-        if c.kind == CursorKind.CLASS_DECL or c.kind == CursorKind.STRUCT_DECL:
-            a_class = Class(c,namespaces)
-            result.append(a_class)
-        elif c.kind == CursorKind.NAMESPACE:
-            namespaces.append(c.spelling)
-            child_classes = build_classes(c,namespaces)
-            result.extend(child_classes)
+    def __init__(self, translation_unit):
+       self.functions = []
+       self.classes = []
+       self.add_child_nodes(translation_unit.cursor, [])
 
-    return result
+    def add_child_nodes(self, cursor, namespaces=[]):
+        for c in cursor.get_children():
+            if c.kind == CursorKind.CLASS_DECL or c.kind == CursorKind.STRUCT_DECL:
+                self.classes.append(Class(c,namespaces))
+            elif c.kind == CursorKind.NAMESPACE:
+                namespaces.append(c.spelling)
+                self.add_child_nodes(c, namespaces)
 
