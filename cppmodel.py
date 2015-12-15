@@ -18,27 +18,39 @@ class FunctionArgument:
         self.name = name
 
 
-class Method(object):
+class _Function(object):
     def __repr__(self):
-        return "Function:"+str(self.name)
-
+        return str(self.name)
+    
     def __init__(self, cursor):
         self.name = cursor.spelling
         arguments = [x.spelling for x in cursor.get_arguments()]
         argument_types = [x.spelling for x in cursor.type.argument_types()]
 
-        if cursor.kind == CursorKind.CXX_METHOD:
-            self.is_const = cursor.is_const_method()
-            self.is_virtual = cursor.is_virtual_method()
-            self.is_pure_virtual = cursor.is_pure_virtual_method()
-            self.is_public = (cursor.access_specifier == AccessSpecifier.PUBLIC)
         self.type = cursor.type.spelling
         self.return_type = cursor.type.get_result().spelling
         self.arguments = []
         self.annotations = _get_annotations(cursor)
-
+        
         for t,n in zip(argument_types,arguments):
             self.arguments.append(FunctionArgument(t,n))
+
+
+class Function(_Function):
+    
+    def __init__(self, cursor, namespaces=[]):
+        _Function.__init__(self, cursor)
+        self.namespace = '::'.join(namespaces)
+
+
+class Method(Function):
+
+    def __init__(self, cursor):
+        _Function.__init__(self, cursor)
+        self.is_const = cursor.is_const_method()
+        self.is_virtual = cursor.is_virtual_method()
+        self.is_pure_virtual = cursor.is_pure_virtual_method()
+        self.is_public = (cursor.access_specifier == AccessSpecifier.PUBLIC)
 
 
 class Class(object):
@@ -77,6 +89,8 @@ class Model(object):
         for c in cursor.get_children():
             if c.kind == CursorKind.CLASS_DECL or c.kind == CursorKind.STRUCT_DECL:
                 self.classes.append(Class(c,namespaces))
+            if c.kind == CursorKind.FUNCTION_DECL:
+                self.functions.append(Function(c,namespaces))
             elif c.kind == CursorKind.NAMESPACE:
                 namespaces.append(c.spelling)
                 self.add_child_nodes(c, namespaces)
