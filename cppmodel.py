@@ -21,7 +21,7 @@ class FunctionArgument:
 class _Function(object):
     def __repr__(self):
         return str(self.name)
-    
+
     def __init__(self, cursor):
         self.name = cursor.spelling
         arguments = [x.spelling for x in cursor.get_arguments()]
@@ -31,13 +31,13 @@ class _Function(object):
         self.return_type = cursor.type.get_result().spelling
         self.arguments = []
         self.annotations = _get_annotations(cursor)
-        
+
         for t,n in zip(argument_types,arguments):
             self.arguments.append(FunctionArgument(t,n))
 
 
 class Function(_Function):
-    
+
     def __init__(self, cursor, namespaces=[]):
         _Function.__init__(self, cursor)
         self.namespace = '::'.join(namespaces)
