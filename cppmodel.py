@@ -92,6 +92,7 @@ class Model(object):
             if c.kind == CursorKind.FUNCTION_DECL:
                 self.functions.append(Function(c,namespaces))
             elif c.kind == CursorKind.NAMESPACE:
-                namespaces.append(c.spelling)
-                self.add_child_nodes(c, namespaces)
+                child_namespaces = list(namespaces)
+                child_namespaces.append(c.spelling)
+                self.add_child_nodes(c, child_namespaces)
 

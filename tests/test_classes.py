@@ -98,7 +98,9 @@ def test_namespaces():
         namespace inner {
             class C{};
         } // end inner
-    } // end outer"""
+        class D{};
+    } // end outer
+    class E{};"""
     tu = get_tu(source, 'cpp')
 
     model = cppmodel.Model(tu)
@@ -107,6 +109,8 @@ def test_namespaces():
     assert classes[0].namespace == ""
     assert classes[1].namespace == "outer"
     assert classes[2].namespace == "outer::inner"
+    assert classes[3].namespace == "outer"
+    assert classes[4].namespace == ""
 
 def test_access_specifiers():
     source = """
