@@ -20,7 +20,7 @@ def test_function_name():
 def test_function_return_type():
     source = """
     int foo();
-    double bar();
+    double* bar();
     """
     
     tu = get_tu(source, 'cpp')
@@ -29,7 +29,10 @@ def test_function_return_type():
     functions = model.functions
     
     assert functions[0].return_type.kind == TypeKind.INT
-    assert functions[1].return_type.kind == TypeKind.DOUBLE
+    assert functions[1].return_type.kind == TypeKind.POINTER
+    assert functions[1].return_type.is_pointer
+    assert functions[1].return_type.pointee.kind == TypeKind.DOUBLE
+    assert not functions[1].return_type.pointee.is_const
 
 
 def test_function_arguments():

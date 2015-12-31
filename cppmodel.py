@@ -1,13 +1,24 @@
 import os
 import sys
 import clang.cindex
-from clang.cindex import AccessSpecifier
-from clang.cindex import CursorKind
-from clang.cindex import Type
+from clang.cindex import AccessSpecifier, CursorKind, TypeKind
 
 def _get_annotations(node):
     return [c.displayname for c in node.get_children()
             if c.kind == CursorKind.ANNOTATE_ATTR]
+
+class Type:
+    def __init__(self, cindex_type):
+        self.kind = cindex_type.kind
+        self.name = cindex_type.spelling
+        self.is_pointer = self.kind == TypeKind.POINTER
+        self.is_reference = self.kind == TypeKind.LVALUEREFERENCE
+        self.is_const = cindex_type.is_const_qualified()
+        if self.is_pointer or self.is_reference:
+            self.pointee = Type(cindex_type.get_pointee())
+
+    def __repr__(self):
+        return self.name
 
 
 class FunctionArgument:
@@ -26,10 +37,9 @@ class _Function(object):
     def __init__(self, cursor):
         self.name = cursor.spelling
         arguments = [x.spelling for x in cursor.get_arguments()]
-        argument_types = [x for x in cursor.type.argument_types()]
+        argument_types = [Type(x) for x in cursor.type.argument_types()]
 
-        self.type = cursor.type.spelling
-        self.return_type = cursor.type.get_result()
+        self.return_type = Type(cursor.type.get_result())
         self.arguments = []
         self.annotations = _get_annotations(cursor)
 
