@@ -16,6 +16,7 @@ class Type:
         self.is_const = cindex_type.is_const_qualified()
         if self.is_pointer or self.is_reference:
             self.pointee = Type(cindex_type.get_pointee())
+        else: self.pointee = None
 
     def __repr__(self):
         return self.name
