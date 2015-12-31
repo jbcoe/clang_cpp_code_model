@@ -1,5 +1,6 @@
 from util import get_tu
 import cppmodel
+from clang.cindex import TypeKind
 
 def test_class_name():
     source = 'class A{};'
@@ -37,8 +38,8 @@ def test_class_method_return_types():
     model = cppmodel.Model(tu)
     classes = model.classes
 
-    assert classes[0].methods[0].return_type == "void"
-    assert classes[0].methods[1].return_type == "int"
+    assert classes[0].methods[0].return_type.kind == TypeKind.VOID
+    assert classes[0].methods[1].return_type.kind == TypeKind.INT
 
 def test_class_method_argument_types():
     source = """
@@ -51,10 +52,9 @@ def test_class_method_argument_types():
     classes = model.classes
     args = classes[0].methods[0].arguments
 
-    assert args[0].type == "int"
+    assert args[0].type.kind == TypeKind.INT
     assert args[0].name == "i"
-    assert args[1].type == "const char *" 
-    # note the inserted whitespace    ^
+    assert args[1].type.kind == TypeKind.POINTER
     assert args[1].name == "p"
 
 def test_class_method_const_qualifiers():

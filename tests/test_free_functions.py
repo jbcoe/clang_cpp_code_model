@@ -1,5 +1,6 @@
 from util import get_tu
 import cppmodel
+from clang.cindex import TypeKind
 
 def test_function_name():
     source = """
@@ -27,8 +28,8 @@ def test_function_return_type():
     model = cppmodel.Model(tu)
     functions = model.functions
     
-    assert functions[0].return_type == 'int'
-    assert functions[1].return_type == 'double'
+    assert functions[0].return_type.kind == TypeKind.INT
+    assert functions[1].return_type.kind == TypeKind.DOUBLE
 
 
 def test_function_arguments():
@@ -44,8 +45,8 @@ def test_function_arguments():
     
     assert len(functions[0].arguments) == 0
     assert len(functions[1].arguments) == 2
-    assert functions[1].arguments[0].type == 'int'
+    assert functions[1].arguments[0].type.kind == TypeKind.INT
     assert functions[1].arguments[0].name == 'x'
-    assert functions[1].arguments[1].type == 'char'
+    assert functions[1].arguments[1].type.kind == TypeKind.CHAR_S
     assert functions[1].arguments[1].name == 'y'
 

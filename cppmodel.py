@@ -3,6 +3,7 @@ import sys
 import clang.cindex
 from clang.cindex import AccessSpecifier
 from clang.cindex import CursorKind
+from clang.cindex import Type
 
 def _get_annotations(node):
     return [c.displayname for c in node.get_children()
@@ -25,10 +26,10 @@ class _Function(object):
     def __init__(self, cursor):
         self.name = cursor.spelling
         arguments = [x.spelling for x in cursor.get_arguments()]
-        argument_types = [x.spelling for x in cursor.type.argument_types()]
+        argument_types = [x for x in cursor.type.argument_types()]
 
         self.type = cursor.type.spelling
-        self.return_type = cursor.type.get_result().spelling
+        self.return_type = cursor.type.get_result()
         self.arguments = []
         self.annotations = _get_annotations(cursor)
 
