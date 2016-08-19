@@ -1,32 +1,129 @@
-import unittest
-import cppmodel as model
+from util import get_tu
+import cppmodel
+from clang.cindex import TypeKind
 
-class TestClasses(unittest.TestCase):
+def test_class_name():
+    source = 'class A{};'
+    tu = get_tu(source, 'cpp')
 
-    def setUp(self):
-        classes = model.parse_classes('test_file.cpp')
-        self.class_a = classes[0]
+    model = cppmodel.Model(tu)
+    classes = model.classes
 
-    def test_className(self):
-        assert(self.class_a.name == 'A')
+    assert len(classes)==1
+    assert classes[0].name == 'A'
 
-    def test_classMethods(self):
-        assert( len(self.class_a.methods) == 2)
-        
-    def test_classMethodReturnTypes(self):
-        assert( self.class_a.methods[0].return_type == "int")
-        assert( self.class_a.methods[1].return_type == "void")
-    
-    def test_classMethodArgumentTypes(self):
-        args = self.class_a.methods[0].arguments
-        assert(args[0].type == "int")
-        assert(args[0].name == "i")
-        assert(args[1].type == "const char *") 
-        # note the inserted whitespace    ^
-        assert(args[1].name == "p")
+def test_class_methods():
+    source = """
+    class A{};
+    class B{
+        void foo();
+        int bar();
+    };"""
+    tu = get_tu(source, 'cpp')
 
-    # we cannot get const qualification of member function from libclang
-    @unittest.expectedFailure 
-    def test_classMethodConstQualifiers(self):
-        assert( self.class_a.methods[0].is_const == True)
-        assert( self.class_a.methods[1].is_const == False)
+    model = cppmodel.Model(tu)
+    classes = model.classes
+
+    assert len(classes[0].methods) == 0
+    assert len(classes[1].methods) == 2
+
+def test_class_method_return_types():
+    source = """
+    class B{
+        void foo();
+        int bar();
+    };"""
+    tu = get_tu(source, 'cpp')
+
+    model = cppmodel.Model(tu)
+    classes = model.classes
+
+    assert classes[0].methods[0].return_type.kind == TypeKind.VOID
+    assert classes[0].methods[1].return_type.kind == TypeKind.INT
+
+def test_class_method_argument_types():
+    source = """
+    class A {
+        int foo(int i, const char* p);
+    };"""
+    tu = get_tu(source, 'cpp')
+
+    model = cppmodel.Model(tu)
+    classes = model.classes
+    args = classes[0].methods[0].arguments
+
+    assert args[0].type.kind == TypeKind.INT
+    assert args[0].name == "i"
+    assert args[1].type.kind == TypeKind.POINTER
+    assert args[1].name == "p"
+
+def test_class_method_const_qualifiers():
+    source = """
+    class A {
+        int foo() const;
+        int bar();
+    };"""
+    tu = get_tu(source, 'cpp')
+
+    model = cppmodel.Model(tu)
+    classes = model.classes
+    methods = classes[0].methods
+
+    assert methods[0].is_const
+    assert not methods[1].is_const
+
+def test_class_methods_are_virtual():
+    source = """
+    class A {
+        virtual int foo();
+        int bar();
+        virtual int foobar() = 0;
+    };"""
+    tu = get_tu(source, 'cpp')
+
+    model = cppmodel.Model(tu)
+    classes = model.classes
+    methods = classes[0].methods
+
+    assert methods[0].is_virtual
+    assert not methods[0].is_pure_virtual
+    assert not methods[1].is_virtual
+    assert methods[2].is_pure_virtual
+
+def test_namespaces():
+    source = """
+    class A{};
+    namespace outer {
+        class B{};
+        namespace inner {
+            class C{};
+        } // end inner
+        class D{};
+    } // end outer
+    class E{};"""
+    tu = get_tu(source, 'cpp')
+
+    model = cppmodel.Model(tu)
+    classes = model.classes
+
+    assert classes[0].namespace == ""
+    assert classes[1].namespace == "outer"
+    assert classes[2].namespace == "outer::inner"
+    assert classes[3].namespace == "outer"
+    assert classes[4].namespace == ""
+
+def test_access_specifiers():
+    source = """
+    class A { int foo(); };
+    struct B { int foo(); };
+    class C { public: int foo(); };
+    """
+    tu = get_tu(source, 'cpp')
+
+    model = cppmodel.Model(tu)
+    classes = model.classes
+
+    assert not classes[0].methods[0].is_public
+    assert classes[1].methods[0].is_public
+    assert classes[2].methods[0].is_public
+

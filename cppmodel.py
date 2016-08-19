@@ -1,93 +1,110 @@
 import os
 import sys
 import clang.cindex
+from clang.cindex import AccessSpecifier, CursorKind, TypeKind
 
 def _get_annotations(node):
-  return [c.displayname for c in node.get_children()
-      if c.kind == clang.cindex.CursorKind.ANNOTATE_ATTR]
+    return [c.displayname for c in node.get_children()
+            if c.kind == CursorKind.ANNOTATE_ATTR]
 
+class Type:
+    def __init__(self, cindex_type):
+        self.kind = cindex_type.kind
+        self.name = cindex_type.spelling
+        self.is_pointer = self.kind == TypeKind.POINTER
+        self.is_reference = self.kind == TypeKind.LVALUEREFERENCE
+        self.is_const = cindex_type.is_const_qualified()
+        if self.is_pointer or self.is_reference:
+            self.pointee = Type(cindex_type.get_pointee())
+        else: self.pointee = None
 
-class Field:
-  def __repr__(self):
-    return str(self.type)+":\""+str(self.name)+"\""
-
-  def __init__(self,cursor):
-    self.name = cursor.spelling
-    self.type = cursor.type.spelling
+    def __repr__(self):
+        return self.name
 
 
 class FunctionArgument:
-  def __repr__(self):
-    return str(self.type)+":\""+str(self.name)+"\""
+    def __repr__(self):
+        return str(self.type)+":\""+str(self.name)+"\""
 
-  def __init__(self, type, name):
-    self.type = type
-    self.name = name
+    def __init__(self, type, name):
+        self.type = type
+        self.name = name
 
 
-class Method(object):
-  def __repr__(self):
-    return "Function:"+str(self.name)
+class _Function(object):
+    def __repr__(self):
+        return str(self.name)
 
-  def __init__(self, cursor):
-    self.name = cursor.spelling
-    arguments = [x.spelling for x in cursor.get_arguments()]
-    argument_types = [x.spelling for x in cursor.type.argument_types()]
-    self.is_const = cursor.type.is_const_qualified()
-    self.type = cursor.type.spelling
-    self.return_type = cursor.type.get_result().spelling
-    self.arguments = []
-    self.annotations = _get_annotations(cursor)
-    
-    for t,n in zip(argument_types,arguments):
-      self.arguments.append(FunctionArgument(t,n))
+    def __init__(self, cursor):
+        self.name = cursor.spelling
+        arguments = [x.spelling for x in cursor.get_arguments()]
+        argument_types = [Type(x) for x in cursor.type.argument_types()]
+
+        self.return_type = Type(cursor.type.get_result())
+        self.arguments = []
+        self.annotations = _get_annotations(cursor)
+
+        for t,n in zip(argument_types,arguments):
+            self.arguments.append(FunctionArgument(t,n))
+
+
+class Function(_Function):
+
+    def __init__(self, cursor, namespaces=[]):
+        _Function.__init__(self, cursor)
+        self.namespace = '::'.join(namespaces)
+
+
+class Method(Function):
+
+    def __init__(self, cursor):
+        _Function.__init__(self, cursor)
+        self.is_const = cursor.is_const_method()
+        self.is_virtual = cursor.is_virtual_method()
+        self.is_pure_virtual = cursor.is_pure_virtual_method()
+        self.is_public = (cursor.access_specifier == AccessSpecifier.PUBLIC)
 
 
 class Class(object):
-  def __repr__(self):
-    return "Class:%s"%str(self.name)
+    def __repr__(self):
+        return "Class:%s"%str(self.name)
 
-  def __init__(self, cursor):
-    self.name = cursor.spelling
-    self.constructors = []
-    self.methods = []
-    self.fields = []
-    self.annotations = _get_annotations(cursor)
-    self.base_classes = []
+    def __init__(self, cursor, namespaces):
+        self.name = cursor.spelling
+        self.namespace = '::'.join(namespaces)
+        self.constructors = []
+        self.methods = []
+        self.fields = []
+        self.annotations = _get_annotations(cursor)
+        self.base_classes = []
 
-    for c in cursor.get_children():
-      if (c.kind == clang.cindex.CursorKind.FIELD_DECL):
-        m = Field(c)
-        self.fields.append(m)
-      elif (c.kind == clang.cindex.CursorKind.CXX_METHOD):
-        f = Method(c)
-        self.methods.append(f)
-      elif (c.kind == clang.cindex.CursorKind.CONSTRUCTOR):
-        f = Method(c)
-        self.constructors.append(f)
-      elif (c.kind == clang.cindex.CursorKind.CXX_BASE_SPECIFIER):
-        self.base_classes.append(c.type.spelling)
+        for c in cursor.get_children():
+            if (c.kind == CursorKind.CXX_METHOD):
+                f = Method(c)
+                self.methods.append(f)
+            elif (c.kind == CursorKind.CONSTRUCTOR):
+                f = Method(c)
+                self.constructors.append(f)
+            elif (c.kind == CursorKind.CXX_BASE_SPECIFIER):
+                self.base_classes.append(c.type.spelling)
 
+class Model(object):
+    def __repr__(self):
+        return "Classes:[{}]".format(",".join(self.classes))
 
-def build_classes(cursor):
-  result = []
-  for c in cursor.get_children():
-    if c.kind == clang.cindex.CursorKind.CLASS_DECL:
-      a_class = Class(c)
-      result.append(a_class)
-    elif c.kind == clang.cindex.CursorKind.STRUCT_DECL:
-      a_class = Class(c)
-      result.append(a_class)
-    elif c.kind == clang.cindex.CursorKind.NAMESPACE:
-      child_classes = build_classes(c)
-      result.extend(child_classes)
+    def __init__(self, translation_unit):
+       self.functions = []
+       self.classes = []
+       self.add_child_nodes(translation_unit.cursor, [])
 
-  return result
-
-
-def parse_classes(class_file):
-  index = clang.cindex.Index.create()
-  translation_unit = index.parse(class_file, ['-x', 'c++', '-std=c++11'])
-  classes = build_classes(translation_unit.cursor)
-  return classes
+    def add_child_nodes(self, cursor, namespaces=[]):
+        for c in cursor.get_children():
+            if c.kind == CursorKind.CLASS_DECL or c.kind == CursorKind.STRUCT_DECL:
+                self.classes.append(Class(c,namespaces))
+            if c.kind == CursorKind.FUNCTION_DECL:
+                self.functions.append(Function(c,namespaces))
+            elif c.kind == CursorKind.NAMESPACE:
+                child_namespaces = list(namespaces)
+                child_namespaces.append(c.spelling)
+                self.add_child_nodes(c, child_namespaces)
 

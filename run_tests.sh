@@ -1,3 +1,1 @@
-#!/usr/bin/env bash
-
-python -m unittest discover -v tests/
+python -m nose -v tests/
