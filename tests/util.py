@@ -18,7 +18,7 @@ def get_tu(source, lang='c', all_warnings=False, flags=[]):
     name = 't.c'
     if lang == 'cpp':
         name = 't.cpp'
-        args.append('-std=c++11')
+        args.extend('-std=c++11 -stdlib=libc++'.split())
     elif lang == 'objc':
         name = 't.m'
     elif lang != 'c':
@@ -27,8 +27,25 @@ def get_tu(source, lang='c', all_warnings=False, flags=[]):
     if all_warnings:
         args += ['-Wall', '-Wextra']
 
-    return TranslationUnit.from_source(name, args, unsaved_files=[(name,
-                                       source)])
+    return TranslationUnit.from_source(name, args, unsaved_files=[(name, source)])
+
+def get_named_tu(source, name, all_warnings=False, flags=[]):
+    """Obtain a translation unit from source and filename.
+
+    Language is deduced from the filename.
+
+    The filename does not need to correspond to a real file but will be the
+    name of an unsaved translation unit.
+    """
+
+    args = list(flags)
+    if name.endswith('cpp') or name.endswith('.cxx'):
+        args.extend('-x c++ -std=c++11 -stdlib=libc++'.split())
+    if all_warnings:
+        args += ['-Wall', '-Wextra']
+
+    return TranslationUnit.from_source(name, args, unsaved_files=[(name, source)])
+
 
 def get_cursor(source, spelling):
     """Obtain a cursor from a source object.

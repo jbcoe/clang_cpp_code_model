@@ -53,3 +53,24 @@ def test_function_arguments():
     assert functions[1].arguments[1].type.kind == TypeKind.CHAR_S
     assert functions[1].arguments[1].name == 'y'
 
+def test_function_equality():
+    source = """
+    int foo();
+    int foo(int);
+    int foo(double);
+    int foo(int,int);
+    namespace x { 
+    int foo();
+    }
+    """
+
+    tu = get_tu(source, 'cpp')
+
+    model = cppmodel.Model(tu)
+    
+    for i,f in enumerate(model.functions):
+        for j,g in enumerate(model.functions):
+            if i==j:
+                assert f==g
+            else:
+                assert not f==g
