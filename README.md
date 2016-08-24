@@ -12,3 +12,6 @@ This module was writtent to power code generators, see <https://github.com/jbcoe
 # Usage
 Set LD_LIBRARY_PATH to find libclang   
     ./run_tests.sh
+
+#Continuous integration
+**Build status (on Travis-CI):** [![Build Status](https://travis-ci.org/jbcoe/clang_cpp_code_model.svg?branch=master)](https://travis-ci.org/jbcoe/clang_cpp_code_model)
