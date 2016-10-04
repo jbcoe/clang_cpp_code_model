@@ -21,6 +21,10 @@ class Type:
     def __str__(self):
         return self.name
 
+class Member:
+    def __init__(self, cursor):
+        self.type = Type(cursor.type)
+        self.name = cursor.spelling
 
 class FunctionArgument:
     def __str__(self):
@@ -59,9 +63,9 @@ class Function(_Function):
             self.qualified_name = self.name
 
     def __eq__(self, f):
-        if self.name != f.name: 
+        if self.name != f.name:
             return False
-        if self.namespace != f.namespace: 
+        if self.namespace != f.namespace:
             return False
         if len(self.arguments) != len(f.arguments):
             return False
@@ -93,7 +97,7 @@ class Class(object):
             self.qualified_name = self.name
         self.constructors = []
         self.methods = []
-        self.fields = []
+        self.members = []
         self.annotations = _get_annotations(cursor)
         self.base_classes = []
         # FIXME: populate these fields with AST info
@@ -108,6 +112,9 @@ class Class(object):
             elif (c.kind == CursorKind.CONSTRUCTOR):
                 f = Method(c)
                 self.constructors.append(f)
+            elif (c.kind == CursorKind.FIELD_DECL):
+                f = Member(c)
+                self.members.append(f)
             elif (c.kind == CursorKind.CXX_BASE_SPECIFIER):
                 self.base_classes.append(c.type.spelling)
 
