@@ -127,3 +127,25 @@ def test_access_specifiers():
     assert classes[1].methods[0].is_public
     assert classes[2].methods[0].is_public
 
+def test_class_member_data():
+    source = """
+    class A {};
+    class B {
+        int x_;
+        B b_;
+    };
+    """
+
+    tu = get_tu(source, 'cpp')
+
+    model = cppmodel.Model(tu)
+    c = model.classes[1]
+
+    assert c.members[0].type.kind == TypeKind.INT
+    assert c.members[0].type.name == "int"
+    assert c.members[0].name == "x_"
+
+    assert c.members[1].type.kind == TypeKind.RECORD
+    assert c.members[1].type.name == "B"
+    assert c.members[1].name == "b_"
+
