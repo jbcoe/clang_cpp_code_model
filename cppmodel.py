@@ -88,7 +88,7 @@ class Class(object):
     def __str__(self):
         return "Class:%s"%str(self.name)
 
-    def __init__(self, cursor, namespaces):
+    def __init__(self, model, cursor, namespaces):
         self.name = cursor.spelling
         self.namespace = '::'.join(namespaces)
         if self.namespace:
@@ -115,6 +115,9 @@ class Class(object):
             elif (c.kind == CursorKind.FIELD_DECL):
                 f = Member(c)
                 self.members.append(f)
+            elif (c.kind == CursorKind.FUNCTION_DECL):
+                f = Function(c)
+                model.functions.append(f)
             elif (c.kind == CursorKind.CXX_BASE_SPECIFIER):
                 self.base_classes.append(c.type.spelling)
 
@@ -158,7 +161,7 @@ class Model(object):
     def add_child_nodes(self, cursor, namespaces=[]):
         for c in cursor.get_children():
             if c.kind == CursorKind.CLASS_DECL or c.kind == CursorKind.STRUCT_DECL:
-                self.classes.append(Class(c,namespaces))
+                self.classes.append(Class(self,c,namespaces))
             if c.kind == CursorKind.FUNCTION_DECL:
                 self.functions.append(Function(c,namespaces))
             elif c.kind == CursorKind.NAMESPACE:

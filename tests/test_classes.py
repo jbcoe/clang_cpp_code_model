@@ -127,6 +127,28 @@ def test_access_specifiers():
     assert classes[1].methods[0].is_public
     assert classes[2].methods[0].is_public
 
+
+def test_friend_definition():
+    source = """
+    class A {
+      int x_;
+      double y_;
+
+      friend bool operator == (const A& lhs, const A& rhs)
+      {
+          return (lhs.x_==rhs.x_) && (lhs.y_==rhs.y__);
+      }
+    };
+    """
+
+    tu = get_tu(source, 'cpp')
+
+    model = cppmodel.Model(tu)
+    c = model.classes[0]
+    assert len(c.methods) == 0
+    assert len(model.functions) == 1
+
+
 def test_class_member_data():
     source = """
     class A {};
