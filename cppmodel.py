@@ -98,7 +98,7 @@ class Method(Function):
 
 class Class(object):
     def __str__(self):
-        return "class %s"%str(self.name)
+        return "class {}".format(self.name)
 
     def __init__(self, cursor, namespaces):
         self.name = cursor.spelling
