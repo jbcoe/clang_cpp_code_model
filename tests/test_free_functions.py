@@ -74,3 +74,18 @@ def test_function_equality():
                 assert f==g
             else:
                 assert not f==g
+
+def test_string_representation():
+    source = """
+    double foo(int, char);
+    double bar(int x, char y);
+    """
+    
+    tu = get_tu(source, 'cpp')
+
+    model = cppmodel.Model(tu)
+    functions = model.functions
+    
+    assert str(functions[0]) == 'double foo(int, char)'
+    assert str(functions[1]) == 'double bar(int x, char y)'
+

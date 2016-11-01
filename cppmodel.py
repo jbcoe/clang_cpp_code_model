@@ -28,20 +28,19 @@ class Member:
 
 class FunctionArgument:
     def __str__(self):
-        return str(self.type)+":\""+str(self.name)+"\""
+        if self.name is None:
+            return str(self.type)
+        return "{} {}".format(self.type, self.name)
 
-    def __init__(self, type, name):
+    def __init__(self, type, name=None):
         self.type = type
-        self.name = name
+        self.name = name or None
 
 
 class _Function(object):
-    def __str__(self):
-        return str(self.name)
-
     def __init__(self, cursor):
         self.name = cursor.spelling
-        arguments = [x.spelling for x in cursor.get_arguments()]
+        arguments = [x.spelling or None for x in cursor.get_arguments()]
         argument_types = [Type(x) for x in cursor.type.argument_types()]
 
         self.return_type = Type(cursor.type.get_result())
@@ -50,6 +49,10 @@ class _Function(object):
 
         for t,n in zip(argument_types,arguments):
             self.arguments.append(FunctionArgument(t,n))
+    
+    def __str__(self):
+        return '{} {}({})'.format(str(self.return_type), str(self.name), ', '.join([str(a) for a in self.arguments]))
+
 
 
 class Function(_Function):
@@ -83,10 +86,19 @@ class Method(Function):
         self.is_pure_virtual = cursor.is_pure_virtual_method()
         self.is_public = (cursor.access_specifier == AccessSpecifier.PUBLIC)
 
+    def __str__(self):
+        s = super(Function, self).__str__()
+        if self.is_const:
+            s = '{} const'.format(s)
+        if self.is_pure_virtual:
+            s = 'virtual {} = 0'.format(s)
+        elif self.is_virtual:
+            s = 'virtual {}'.format(s)
+        return s
 
 class Class(object):
     def __str__(self):
-        return "Class:%s"%str(self.name)
+        return "class {}".format(self.name)
 
     def __init__(self, cursor, namespaces):
         self.name = cursor.spelling
@@ -120,7 +132,7 @@ class Class(object):
 
 class Model(object):
     def __str__(self):
-        return "Classes:[{}]".format(",".join(self.classes))
+        return "[{}]".format(",".join(self.classes))
 
     def __init__(self, translation_unit=None):
        self.functions = []
