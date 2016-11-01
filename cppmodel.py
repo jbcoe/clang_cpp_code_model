@@ -131,8 +131,6 @@ class Class(object):
                 self.base_classes.append(c.type.spelling)
 
 class Model(object):
-    def __str__(self):
-        return "[{}]".format(",".join(self.classes))
 
     def __init__(self, translation_unit=None):
        self.functions = []
