@@ -149,3 +149,22 @@ def test_class_member_data():
     assert c.members[1].type.name == "B"
     assert c.members[1].name == "b_"
 
+def test_string_representation():
+    source = """
+    class A {
+        virtual int foo();
+        int bar();
+        virtual int foobar() = 0;
+        virtual int cfoobar(int x) const = 0;
+    };"""
+    tu = get_tu(source, 'cpp')
+
+    model = cppmodel.Model(tu)
+    classes = model.classes
+    methods = classes[0].methods
+
+    assert str(methods[0]) == 'virtual int foo()'
+    assert str(methods[1]) == 'int bar()'
+    assert str(methods[2]) == 'virtual int foobar() = 0'
+    assert str(methods[3]) == 'virtual int cfoobar(int x) const = 0'
+

@@ -79,3 +79,15 @@ def test_reference_to_record_type():
     assert f.return_type.is_reference
     assert f.return_type.pointee.kind == TypeKind.RECORD
 
+def test_string_representation():
+    source = "class A{};"
+    
+    tu = get_tu(source, 'cpp')
+    model = cppmodel.Model(tu)
+    c = model.classes[0]
+
+    print str(c)
+    assert str(c) == "class A"
+
+
+
