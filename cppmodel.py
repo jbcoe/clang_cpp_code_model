@@ -169,7 +169,7 @@ class Model(object):
         for c in cursor.get_children():
             if c.kind == CursorKind.CLASS_DECL or c.kind == CursorKind.STRUCT_DECL:
                 self.classes.append(Class(c,namespaces))
-            if c.kind == CursorKind.FUNCTION_DECL:
+            if c.kind == CursorKind.FUNCTION_DECL and c.type.kind == TypeKind.FUNCTIONPROTO:
                 self.functions.append(Function(c,namespaces))
             elif c.kind == CursorKind.NAMESPACE:
                 child_namespaces = list(namespaces)
